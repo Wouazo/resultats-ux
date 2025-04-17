@@ -75,7 +75,7 @@
   });
 
   const maturityText = (score) => {
-    if (score <= 0.99) return ["Niveau 1 : Absent", "L’UX est inexistant ou ignoré..."];
+    if (score <= 0.99) return ["Niveau 1 : Absent", "L’UX est pour l'heure inexistant ou totalement ignoré dans l’organisation. Aucune compétence, aucun processus et aucun investissement ne sont actuellement dédiés à l’expérience utilisateur. Les décisions sont prises uniquement sur des bases internes (techniques, coûts, délais), sans prise en compte des besoins des utilisateurs."];
     if (score <= 1.99) return ["Niveau 2 : Émergent", "Quelques initiatives UX émergent..."];
     if (score <= 2.99) return ["Niveau 3 : Structuré", "L’UX est intégré dans certains processus..."];
     if (score <= 3.99) return ["Niveau 4 : Intégré", "L’UX est intégré aux décisions stratégiques..."];
