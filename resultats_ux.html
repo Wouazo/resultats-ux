@@ -37,12 +37,18 @@
             cursor: pointer;
         }
 
+        #logo {
+            max-height: 60px;
+            margin-bottom: 20px;
+        }
+
         canvas {
             margin-top: 40px;
         }
     </style>
 </head>
 <body>
+    <img src="https://uxlabtoolkit.ch/wp-content/uploads/2024/01/logo-UXLabToolkit.svg" alt="Logo" id="logo">
     <h1>Résultats de votre évaluation UX</h1>
     <div id="level-description"></div>
     <canvas id="radar-chart" width="600" height="600"></canvas>
@@ -129,17 +135,15 @@
             }
         ];
 
-        function getLevelDescription(score) {
-            const level = descriptions.find(l => score >= l.min && score <= l.max);
-            return `<h2>${level.title}</h2>
-                    <p class="lvl-score">Score global : ${score}</p>
-                    <p>${level.desc}</p>`;
+        function getLevel(score) {
+            return descriptions.find(l => score >= l.min && score <= l.max);
         }
 
-        document.getElementById("level-description").innerHTML = getLevelDescription(globalScore);
+        const level = getLevel(globalScore);
+        document.getElementById("level-description").innerHTML = `<h2>${level.title}</h2><p class="lvl-score">Score global : ${globalScore}</p><p>${level.desc}</p>`;
 
         const ctx = document.getElementById("radar-chart");
-        new Chart(ctx, {
+        const radarChart = new Chart(ctx, {
             type: 'radar',
             data: {
                 labels: labels,
@@ -179,17 +183,29 @@
             }
         });
 
-        // PDF export
-        document.getElementById("download-pdf").addEventListener("click", () => {
+        // Exporter le PDF avec texte + radar
+        document.getElementById("download-pdf").addEventListener("click", async () => {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
-            pdf.html(document.body, {
-                callback: function (doc) {
-                    doc.save("resultats-ux.pdf");
-                },
-                x: 10,
-                y: 10
-            });
+
+            const logo = new Image();
+            logo.src = "https://uxlabtoolkit.ch/wp-content/uploads/2024/01/logo-UXLabToolkit.svg";
+            logo.onload = function () {
+                pdf.addImage(logo, "PNG", 10, 10, 40, 15);
+                pdf.setFontSize(16);
+                pdf.text("Résultats de votre évaluation UX", 60, 20);
+                pdf.setFontSize(14);
+                pdf.text(level.title, 10, 40);
+                pdf.text(`Score global : ${globalScore}`, 10, 50);
+                pdf.setFontSize(11);
+                pdf.text(pdf.splitTextToSize(level.desc, 180), 10, 60);
+
+                const chartCanvas = document.getElementById("radar-chart");
+                const chartImage = chartCanvas.toDataURL("image/png", 1.0);
+                pdf.addImage(chartImage, "PNG", 10, 120, 180, 120);
+
+                pdf.save("resultats-ux.pdf");
+            };
         });
     </script>
 </body>
