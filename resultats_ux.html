@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+>
+<!-- HEAD -->
+<head>
+  <meta charset="UTF-8" />
+  <title>Résultats UX</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    #canvas-container { width: 600px; height: 600px; }
+    #pdf-button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+
+<!-- BODY -->
+<body>
+<h1>Résultats de votre évaluation UX</h1>
+<div id="maturity-level-desc"></div>
+<div id="canvas-container">
+  <canvas id="radar-chart"></canvas>
+</div>
+<button id="pdf-button">Télécharger le PDF</button>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  function getValue(code) {
+    const val = parseFloat(params.get(code));
+    return isNaN(val) ? 0 : val;
+  }
+
+  function round(score) {
+    return Math.floor(score * 100) / 100;
+  }
+
+  const scores = {
+    SK: round(getValue("SK1") * 0.5 + getValue("SK2") * 0.33 + getValue("SK3") * 0.17),
+    INV: round(getValue("INV1") * 0.5 + getValue("INV2") * 0.25 + getValue("INV3") * 0.25),
+    INT: round(getValue("INT1") * 0.5 + getValue("INT2") * 0.27 + getValue("INT3") * 0.23),
+    CLT: round(getValue("CLT1") * 0.25 + getValue("CLT2") * 0.25 + getValue("CLT3") * 0.5),
+    ST: round(getValue("ST1") * 0.6 + getValue("ST2") * 0.4),
+    INS: round(getValue("INS1") * 0.5 + getValue("INS2") * 0.5)
+  };
+
+  const UX_SCORE = round((scores.SK + scores.INV + scores.INT + scores.CLT + scores.ST + scores.INS) / 6);
+
+  const DIMENSIONS = [
+    "Compétences UX", "Investissement UX", "Intégration UX",
+    "Culture UX", "Stratégie UX", "Exploitation des résultats"
+  ];
+
+  const ctx = document.getElementById("radar-chart").getContext("2d");
+  const radarChart = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: DIMENSIONS,
+      datasets: [{
+        label: "Évaluation UX",
+        backgroundColor: "rgba(54,162,235,0.2)",
+        borderColor: "rgba(54,162,235,1)",
+        pointBackgroundColor: "rgba(54,162,235,1)",
+        data: [scores.SK, scores.INV, scores.INT, scores.CLT, scores.ST, scores.INS]
+      }]
+    },
+    options: {
+      responsive: true,
+      scale: {
+        ticks: { beginAtZero: true, min: 0, max: 5 },
+        pointLabels: { fontSize: 14 }
+      }
+    }
+  });
+
+  const maturityText = (score) => {
+    if (score <= 0.99) return ["Niveau 1 : Absent", "L’UX est inexistant ou ignoré..."];
+    if (score <= 1.99) return ["Niveau 2 : Émergent", "Quelques initiatives UX émergent..."];
+    if (score <= 2.99) return ["Niveau 3 : Structuré", "L’UX est intégré dans certains processus..."];
+    if (score <= 3.99) return ["Niveau 4 : Intégré", "L’UX est intégré aux décisions stratégiques..."];
+    return ["Niveau 5 : Optimisé", "L’UX est un moteur d’innovation à l’échelle de l’organisation..."];
+  };
+
+  const [title, description] = maturityText(UX_SCORE);
+  document.getElementById("maturity-level-desc").innerHTML = `
+    <h2>${title}</h2>
+    <p><strong>Score global :</strong> ${UX_SCORE}</p>
+    <p>${description}</p>
+  `;
+
+  document.getElementById("pdf-button").addEventListener("click", () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const canvas = document.getElementById("radar-chart");
+    const imgData = canvas.toDataURL("image/png");
+
+    doc.text(title, 20, 20);
+    doc.text("Score global : " + UX_SCORE, 20, 30);
+    doc.text(description, 20, 40, { maxWidth: 170 });
+    doc.addImage(imgData, "PNG", 20, 80, 150, 150);
+    const today = new Date();
+    const filename = "resultats_ux_" + today.toISOString().split('T')[0] + ".pdf";
+    doc.save(filename);
+  });
+</script>
+
+</body>
+</html>
