@@ -98,38 +98,39 @@
 
         const globalScore = Math.round(dimensions.reduce((a, b) => a + b, 0) / dimensions.length * 100) / 100;
 
-        const descriptions = [
-            {
-                title: "Niveau 1 : Absent",
-                min: 0,
-                max: 0.99,
-                desc: "L’UX est pour l'heure inexistant ou totalement ignoré dans l’organisation..."
-            },
-            {
-                title: "Niveau 2 : Émergent",
-                min: 1,
-                max: 1.99,
-                desc: "Quelques initiatives UX émergent, mais elles sont ponctuelles et non structurées..."
-            },
-            {
-                title: "Niveau 3 : Structuré",
-                min: 2,
-                max: 2.99,
-                desc: "L’UX est intégré dans certains processus et projets, avec des pratiques régulières..."
-            },
-            {
-                title: "Niveau 4 : Intégré",
-                min: 3,
-                max: 3.99,
-                desc: "L’UX est pleinement intégré aux processus de conception et aux décisions stratégiques..."
-            },
-            {
-                title: "Niveau 5 : Optimisé",
-                min: 4,
-                max: 5,
-                desc: "L’UX est un pilier stratégique et un moteur d’innovation..."
-            }
-        ];
+       const descriptions = [
+  {
+    title: "Niveau 1 : Absent",
+    min: 0,
+    max: 0.99,
+    desc: "L’UX est pour l'heure inexistant ou totalement ignoré dans l’organisation. Aucune compétence, aucun processus et aucun investissement ne sont actuellement dédiés à l’expérience utilisateur. Les décisions sont prises uniquement sur des bases internes (techniques, coûts, délais), sans prise en compte des besoins des utilisateurs."
+  },
+  {
+    title: "Niveau 2 : Émergent",
+    min: 1,
+    max: 1.99,
+    desc: "Quelques initiatives UX émergent, mais elles sont ponctuelles et non structurées. Certaines équipes commencent à s’y intéresser, notamment pour améliorer certaines interfaces numériques, mais sans cadre défini ni soutien fort de la hiérarchie. L’UX reste marginal dans les décisions de conception et la stratégie de l’entreprise."
+  },
+  {
+    title: "Niveau 3 : Structuré",
+    min: 2,
+    max: 2.99,
+    desc: "L’UX est intégré dans certains processus et projets, avec des pratiques régulières. Une équipe ou des référents UX existent, et des formations sont proposées. La hiérarchie reconnaît l’importance de l’UX, mais son impact sur la stratégie globale reste limité. La collaboration entre UX et les autres départements commence à se développer, mais reste ponctuelle et non systématique. L’UX influence principalement l’interface des produits, avec quelques essais d’intégration dans les décisions liées aux interactions avec la machine physique."
+  },
+  {
+    title: "Niveau 4 : Intégré",
+    min: 3,
+    max: 3.99,
+    desc: "L’UX est pleinement intégré aux processus de conception et aux décisions stratégiques. La collaboration entre UX et autres départements est fluide, et les résultats UX influencent activement la conception des interfaces, et dans une certaine mesure l’ergonomie des machines physiques et certains services liés aux produits. La direction soutient activement l’UX et alloue des ressources dédiées."
+  },
+  {
+    title: "Niveau 5 : Optimisé",
+    min: 4,
+    max: 5,
+    desc: "L’UX est un pilier stratégique et un moteur d’innovation. Les besoins utilisateurs guident toutes les décisions, depuis la conception des interfaces jusqu’à l’ensemble de l’écosystème produit-service. L’ergonomie des machines physiques, l’expérience des opérateurs et les interactions avec l’environnement global sont optimisées en continu. L’amélioration UX est ancrée dans l’organisation, avec une culture mature et des processus optimisés."
+  }
+];
+
 
         function getLevel(score) {
             return descriptions.find(l => score >= l.min && score <= l.max);
