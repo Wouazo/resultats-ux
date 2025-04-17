@@ -6,6 +6,7 @@
     <title>Résultats de votre évaluation UX</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -179,22 +180,18 @@
         });
 
         document.getElementById("download-pdf").addEventListener("click", () => {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
+            html2canvas(document.body).then(canvas => {
+                const imgData = canvas.toDataURL("image/png");
+                const pdf = new jspdf.jsPDF("p", "mm", "a4");
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgWidth = pageWidth;
+                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-            const chartCanvas = document.getElementById("radar-chart");
-            const chartImage = chartCanvas.toDataURL("image/png", 1.0);
-
-            pdf.setFontSize(16);
-            pdf.text("Résultats de votre évaluation UX", 10, 20);
-            pdf.setFontSize(14);
-            pdf.text(level.title, 10, 35);
-            pdf.text(`Score global : ${globalScore}`, 10, 45);
-            pdf.setFontSize(11);
-            pdf.text(pdf.splitTextToSize(level.desc, 180), 10, 55);
-
-            pdf.addImage(chartImage, "PNG", 10, 110, 180, 100);
-            pdf.save("resultats-ux.pdf");
+                pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                pdf.save("resultats-ux.pdf");
+            });
         });
     </script>
 </body>
