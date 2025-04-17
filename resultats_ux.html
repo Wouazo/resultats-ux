@@ -1,54 +1,197 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Niveaux de maturité UX</title>
+    <title>Résultats de votre évaluation UX</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 40px;
-            max-width: 900px;
+            max-width: 800px;
             margin: auto;
-            line-height: 1.6;
         }
         h1 {
             font-size: 2.5em;
-            color: #15657A;
-        }
-        h2 {
-            font-size: 1.6em;
-            color: #15657A;
-            margin-top: 40px;
+            font-weight: bold;
         }
         .lvl-score {
             font-weight: bold;
-            margin: 0;
+        }
+        .btn-download {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #15657A;
+            color: white;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+        }
+        #logo {
+            max-height: 60px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            margin-top: 40px;
         }
     </style>
 </head>
 <body>
-    <h1>Niveaux de maturité UX</h1>
+    <img src="https://uxlabtoolkit.ch/wp-content/uploads/2024/01/logo-UXLabToolkit.svg" alt="Logo" id="logo">
+    <h1>Résultats de votre évaluation UX</h1>
+    <div id="level-description"></div>
+    <canvas id="radar-chart" width="600" height="600"></canvas>
+    <button class="btn-download" id="download-pdf">→ Télécharger les résultats</button>
 
-    <h2>Niveau 1 : Absent</h2>
-    <p class="lvl-score">Score global : 0 à 0.99</p>
-    <p>L’UX est pour l'heure inexistant ou totalement ignoré dans l’organisation. Aucune compétence, aucun processus et aucun investissement ne sont actuellement dédiés à l’expérience utilisateur. Les décisions sont prises uniquement sur des bases internes (techniques, coûts, délais), sans prise en compte des besoins des utilisateurs.</p>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const get = key => parseInt(urlParams.get(key)) || 0;
 
-    <h2>Niveau 2 : Émergent</h2>
-    <p class="lvl-score">Score global : 1 à 1.99</p>
-    <p>Quelques initiatives UX émergent, mais elles sont ponctuelles et non structurées. Certaines équipes commencent à s’y intéresser, notamment pour améliorer certaines interfaces numériques, mais sans cadre défini ni soutien fort de la hiérarchie. L’UX reste marginal dans les décisions de conception et la stratégie de l’entreprise.</p>
+        const scores = {
+            SK: [get("SK1"), get("SK2"), get("SK3")],
+            INV: [get("INV1"), get("INV2"), get("INV3")],
+            INT: [get("INT1"), get("INT2"), get("INT3")],
+            CLT: [get("CLT1"), get("CLT2"), get("CLT3")],
+            ST: [get("ST1"), get("ST2")],
+            INS: [get("INS1"), get("INS2")]
+        };
 
-    <h2>Niveau 3 : Structuré</h2>
-    <p class="lvl-score">Score global : 2 à 2.99</p>
-    <p>L’UX est intégré dans certains processus et projets, avec des pratiques régulières. Une équipe ou des référents UX existent, et des formations sont proposées. La hiérarchie reconnaît l’importance de l’UX, mais son impact sur la stratégie globale reste limité. La collaboration entre UX et les autres départements commence à se développer, mais reste ponctuelle et non systématique. L’UX influence principalement l’interface des produits, avec quelques essais d’intégration dans les décisions liées aux interactions avec la machine physique.</p>
+        const weights = {
+            SK: [0.5, 0.33, 0.17],
+            INV: [0.5, 0.25, 0.25],
+            INT: [0.5, 0.27, 0.23],
+            CLT: [0.25, 0.25, 0.5],
+            ST: [0.6, 0.4],
+            INS: [0.5, 0.5]
+        };
 
-    <h2>Niveau 4 : Intégré</h2>
-    <p class="lvl-score">Score global : 3 à 3.99</p>
-    <p>L’UX est pleinement intégré aux processus de conception et aux décisions stratégiques. La collaboration entre UX et autres départements est fluide, et les résultats UX influencent activement la conception des interfaces, et dans une certaine mesure l’ergonomie des machines physiques et certains services liés aux produits. La direction soutient activement l’UX et alloue des ressources dédiées.</p>
+        const labels = [
+            "Compétences UX",
+            "Investissement UX",
+            "Intégration UX",
+            "Culture UX",
+            "Stratégie UX",
+            "Exploitation résultats UX"
+        ];
 
-    <h2>Niveau 5 : Optimisé</h2>
-    <p class="lvl-score">Score global : 4 à 5</p>
-    <p>L’UX est un pilier stratégique et un moteur d’innovation. Les besoins utilisateurs guident toutes les décisions, depuis la conception des interfaces jusqu’à l’ensemble de l’écosystème produit-service. L’ergonomie des machines physiques, l’expérience des opérateurs et les interactions avec l’environnement global sont optimisées en continu. L’amélioration UX est ancrée dans l’organisation, avec une culture mature et des processus optimisés.</p>
+        function weightedAverage(values, weights) {
+            const totalWeight = weights.reduce((a, b) => a + b, 0);
+            const score = values.reduce((sum, val, i) => sum + val * weights[i], 0);
+            return Math.round((score / totalWeight) * 100) / 100;
+        }
 
+        const dimensions = [
+            weightedAverage(scores.SK, weights.SK),
+            weightedAverage(scores.INV, weights.INV),
+            weightedAverage(scores.INT, weights.INT),
+            weightedAverage(scores.CLT, weights.CLT),
+            weightedAverage(scores.ST, weights.ST),
+            weightedAverage(scores.INS, weights.INS)
+        ];
+
+        const globalScore = Math.round(dimensions.reduce((a, b) => a + b, 0) / dimensions.length * 100) / 100;
+
+        const descriptions = [
+            {
+                title: "Niveau 1 : Absent",
+                min: 0,
+                max: 0.99,
+                desc: "L’UX est pour l'heure inexistant ou totalement ignoré dans l’organisation. Aucune compétence, aucun processus et aucun investissement ne sont actuellement dédiés à l’expérience utilisateur. Les décisions sont prises uniquement sur des bases internes (techniques, coûts, délais), sans prise en compte des besoins des utilisateurs."
+            },
+            {
+                title: "Niveau 2 : Émergent",
+                min: 1,
+                max: 1.99,
+                desc: "Quelques initiatives UX émergent, mais elles sont ponctuelles et non structurées. Certaines équipes commencent à s’y intéresser, notamment pour améliorer certaines interfaces numériques, mais sans cadre défini ni soutien fort de la hiérarchie. L’UX reste marginal dans les décisions de conception et la stratégie de l’entreprise."
+            },
+            {
+                title: "Niveau 3 : Structuré",
+                min: 2,
+                max: 2.99,
+                desc: "L’UX est intégré dans certains processus et projets, avec des pratiques régulières. Une équipe ou des référents UX existent, et des formations sont proposées. La hiérarchie reconnaît l’importance de l’UX, mais son impact sur la stratégie globale reste limité. La collaboration entre UX et les autres départements commence à se développer, mais reste ponctuelle et non systématique. L’UX influence principalement l’interface des produits, avec quelques essais d’intégration dans les décisions liées aux interactions avec la machine physique."
+            },
+            {
+                title: "Niveau 4 : Intégré",
+                min: 3,
+                max: 3.99,
+                desc: "L’UX est pleinement intégré aux processus de conception et aux décisions stratégiques. La collaboration entre UX et autres départements est fluide, et les résultats UX influencent activement la conception des interfaces, et dans une certaine mesure l’ergonomie des machines physiques et certains services liés aux produits. La direction soutient activement l’UX et alloue des ressources dédiées."
+            },
+            {
+                title: "Niveau 5 : Optimisé",
+                min: 4,
+                max: 5,
+                desc: "L’UX est un pilier stratégique et un moteur d’innovation. Les besoins utilisateurs guident toutes les décisions, depuis la conception des interfaces jusqu’à l’ensemble de l’écosystème produit-service. L’ergonomie des machines physiques, l’expérience des opérateurs et les interactions avec l’environnement global sont optimisées en continu. L’amélioration UX est ancrée dans l’organisation, avec une culture mature et des processus optimisés."
+            }
+        ];
+
+        function getLevel(score) {
+            return descriptions.find(l => score >= l.min && score <= l.max);
+        }
+
+        const level = getLevel(globalScore);
+        document.getElementById("level-description").innerHTML = <h2>${level.title}</h2><p class="lvl-score">Score global : ${globalScore}</p><p>${level.desc}</p>;
+
+        const ctx = document.getElementById("radar-chart");
+        const radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dimensions,
+                    fill: true,
+                    backgroundColor: "rgba(21, 101, 122, 0.2)",
+                    borderColor: "#15657A",
+                    pointBackgroundColor: "#15657A"
+                }]
+            },
+            options: {
+                responsive: false,
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1,
+                            backdropColor: 'transparent',
+                            color: '#666'
+                        },
+                        pointLabels: {
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        document.getElementById("download-pdf").addEventListener("click", () => {
+            html2canvas(document.body).then(canvas => {
+                const imgData = canvas.toDataURL("image/png");
+                const pdf = new jspdf.jsPDF("p", "mm", "a4");
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgWidth = pageWidth;
+                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+                pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                pdf.save("resultats-ux.pdf");
+            });
+        });
+    </script>
 </body>
 </html>
