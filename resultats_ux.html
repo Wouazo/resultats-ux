@@ -144,7 +144,12 @@ const labels = [
         }
 
         const level = getLevel(globalScore);
-        document.getElementById("level-description").innerHTML = `<h2>${level.title}</h2><p class="lvl-score">Score global : ${globalScore}</p><p>${level.desc}</p>`;
+        document.getElementById("level-description").innerHTML = `
+  <h2>${level.title}</h2>
+  <p class="lvl-score">Score global : ${globalScore} <small>(sur 5)</small></p>
+  <p>${level.desc}</p>
+`;
+
 
         const ctx = document.getElementById("radar-chart");
         const radarChart = new Chart(ctx, {
