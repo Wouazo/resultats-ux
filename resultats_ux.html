@@ -78,14 +78,23 @@
             INS: [0.5, 0.5]
         };
 
-       const labels = [
-            "Compétences UX",
-            "Investissement UX",
-            "Intégration UX",
-            "Culture UX",
-            "Stratégie UX",
-            "Exploitation résultats UX"
-        ];
+       const dimensions = [
+             weightedAverage(scores.SK, weights.SK),
+             weightedAverage(scores.INV, weights.INV),
+            weightedAverage(scores.INT, weights.INT),
+             weightedAverage(scores.CLT, weights.CLT),
+  weightedAverage(scores.ST, weights.ST),
+  weightedAverage(scores.INS, weights.INS)
+];
+
+const labels = [
+  `Compétences UX (${dimensions[0].toFixed(1)})`,
+  `Investissement UX (${dimensions[1].toFixed(1)})`,
+  `Intégration UX (${dimensions[2].toFixed(1)})`,
+  `Culture UX (${dimensions[3].toFixed(1)})`,
+  `Stratégie UX (${dimensions[4].toFixed(1)})`,
+  `Exploitation résultats UX (${dimensions[5].toFixed(1)})`
+];
 
 
         function weightedAverage(values, weights) {
@@ -93,15 +102,6 @@
             const score = values.reduce((sum, val, i) => sum + val * weights[i], 0);
             return Math.round((score / totalWeight) * 100) / 100;
         }
-
-        const dimensions = [
-            weightedAverage(scores.SK, weights.SK),
-            weightedAverage(scores.INV, weights.INV),
-            weightedAverage(scores.INT, weights.INT),
-            weightedAverage(scores.CLT, weights.CLT),
-            weightedAverage(scores.ST, weights.ST),
-            weightedAverage(scores.INS, weights.INS)
-        ];
 
         const globalScore = Math.round(dimensions.reduce((a, b) => a + b, 0) / dimensions.length * 100) / 100;
 
