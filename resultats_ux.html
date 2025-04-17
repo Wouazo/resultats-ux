@@ -189,7 +189,12 @@
                 const imgWidth = pageWidth;
                 const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-                pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                const margin = 10; // marges latérales
+                const scaledWidth = pageWidth - 2 * margin;
+                const scaledHeight = (imgProps.height * scaledWidth) / imgProps.width;
+
+                pdf.addImage(imgData, "PNG", margin, 10, scaledWidth, scaledHeight);
+
                 pdf.save("resultats-ux.pdf");
             });
         });
