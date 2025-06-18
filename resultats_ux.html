@@ -47,6 +47,24 @@
 summary::-webkit-details-marker {
   display: none;
 }
+        .custom-summary {
+  position: relative;
+  padding-left: 20px;
+  cursor: pointer;
+}
+
+.custom-summary::before {
+  content: "▶";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
+}
+
+details[open] > .custom-summary::before {
+  content: "▼";
+}
     </style>
 </head>
 <body>
@@ -55,7 +73,7 @@ summary::-webkit-details-marker {
     <div id="level-description"></div>
     <canvas id="radar-chart" width="800" height="600"></canvas>
     <details id="levels-details" style="margin-top: 40px;">
-  <summary style="font-weight: bold; font-size: 1.1rem; cursor: pointer;">→ Voir la définition des niveaux</summary>
+  <summary class="custom-summary">→ Voir la définition des niveaux</summary>
   <div style="margin-top: 20px;">
     <ul style="list-style: none; padding-left: 0;">
       <li><strong>Niveau 1 : Absent</strong><br>
