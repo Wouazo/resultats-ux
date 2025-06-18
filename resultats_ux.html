@@ -48,7 +48,7 @@
     <h1>Résultats de votre évaluation UX</h1>
     <div id="level-description"></div>
     <canvas id="radar-chart" width="800" height="600"></canvas>
-    <details style="margin-top: 40px;">
+    <details id="levels-details" style="margin-top: 40px;">
   <summary style="font-weight: bold; font-size: 1.1rem; cursor: pointer;">→ Voir la définition des niveaux</summary>
   <div style="margin-top: 20px;">
     <ul style="list-style: none; padding-left: 0;">
@@ -214,25 +214,29 @@ const labels = [
             }
         });
 
-        document.getElementById("download-pdf").addEventListener("click", () => {
-            html2canvas(document.body).then(canvas => {
-                const imgData = canvas.toDataURL("image/png");
-                const pdf = new jspdf.jsPDF("p", "mm", "a4");
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                const imgProps = pdf.getImageProperties(imgData);
-                const imgWidth = pageWidth;
-                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+       document.getElementById("download-pdf").addEventListener("click", () => {
+    const details = document.getElementById("levels-details");
 
-                const margin = 10; // marges latérales
-                const scaledWidth = pageWidth - 2 * margin;
-                const scaledHeight = (imgProps.height * scaledWidth) / imgProps.width;
+    // Forcer l'ouverture en clonant le noeud avec la classe "always-open"
+    details.setAttribute("open", true); // ouverture visuelle
 
-                pdf.addImage(imgData, "PNG", margin, 10, scaledWidth, scaledHeight);
+    setTimeout(() => {
+        html2canvas(document.body).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jspdf.jsPDF("p", "mm", "a4");
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const imgProps = pdf.getImageProperties(imgData);
 
-                pdf.save("resultats-ux.pdf");
-            });
+            const margin = 10;
+            const scaledWidth = pageWidth - 2 * margin;
+            const scaledHeight = (imgProps.height * scaledWidth) / imgProps.width;
+
+            pdf.addImage(imgData, "PNG", margin, 10, scaledWidth, scaledHeight);
+            pdf.save("resultats-ux.pdf");
         });
+    }, 300);
+});
+
     </script>
 </body>
 </html>
