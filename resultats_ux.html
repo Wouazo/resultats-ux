@@ -239,26 +239,64 @@ const labels = [
         });
 
        document.getElementById("download-pdf").addEventListener("click", () => {
-    const details = document.getElementById("levels-details");
+  const details = document.getElementById("levels-details");
+  details.setAttribute("open", true); // assure que c'est visible
 
-    // Forcer l'ouverture en clonant le noeud avec la classe "always-open"
-    details.setAttribute("open", true); // ouverture visuelle
+  setTimeout(() => {
+    html2canvas(document.body, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF("p", "mm", "a4");
 
-    setTimeout(() => {
-        html2canvas(document.body).then(canvas => {
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jspdf.jsPDF("p", "mm", "a4");
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const imgProps = pdf.getImageProperties(imgData);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-            const margin = 10;
-            const scaledWidth = pageWidth - 2 * margin;
-            const scaledHeight = (imgProps.height * scaledWidth) / imgProps.width;
+      const margin = 10; // marge plus fine
+      const usableWidth = pageWidth - 2 * margin;
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgWidth = usableWidth;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-            pdf.addImage(imgData, "PNG", margin, 10, scaledWidth, scaledHeight);
-            pdf.save("resultats-ux.pdf");
-        });
-    }, 300);
+      let position = 0;
+
+      // Si image tient en une seule page
+      if (imgHeight <= pageHeight - 2 * margin) {
+        pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+      } else {
+        // Cas multi-pages
+        let remainingHeight = imgHeight;
+        const pageHeightPx = (pageHeight - 2 * margin) * (imgProps.height / imgHeight); // en pixels
+
+        const imgCanvas = document.createElement("canvas");
+        const ctx = imgCanvas.getContext("2d");
+        const imgFullHeight = canvas.height;
+        const imgFullWidth = canvas.width;
+
+        while (remainingHeight > 0) {
+          imgCanvas.width = imgFullWidth;
+          imgCanvas.height = Math.min(pageHeightPx, remainingHeight);
+
+          ctx.clearRect(0, 0, imgFullWidth, imgCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0, position,
+            imgFullWidth, imgCanvas.height,
+            0, 0,
+            imgFullWidth, imgCanvas.height
+          );
+
+          const imgPageData = imgCanvas.toDataURL("image/png");
+          pdf.addImage(imgPageData, "PNG", margin, margin, imgWidth, (imgCanvas.height * imgWidth) / imgFullWidth);
+
+          remainingHeight -= imgCanvas.height;
+          position += imgCanvas.height;
+
+          if (remainingHeight > 0) pdf.addPage();
+        }
+      }
+
+      pdf.save("resultats-ux.pdf");
+    });
+  }, 300);
 });
 
     </script>
