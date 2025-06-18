@@ -240,7 +240,7 @@ const labels = [
 
        document.getElementById("download-pdf").addEventListener("click", () => {
   const details = document.getElementById("levels-details");
-  details.setAttribute("open", true); // assure que c'est visible
+  details.setAttribute("open", true); // force l'ouverture pour affichage
 
   setTimeout(() => {
     html2canvas(document.body, { scale: 2 }).then(canvas => {
@@ -249,55 +249,32 @@ const labels = [
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
 
-      const margin = 10; // marge plus fine
-      const usableWidth = pageWidth - 2 * margin;
       const imgProps = pdf.getImageProperties(imgData);
-      const imgWidth = usableWidth;
+      const imgWidth = pageWidth - 2 * margin;
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-      let position = 0;
+      let heightLeft = imgHeight;
+      let position = margin;
 
-      // Si image tient en une seule page
-      if (imgHeight <= pageHeight - 2 * margin) {
-        pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
-      } else {
-        // Cas multi-pages
-        let remainingHeight = imgHeight;
-        const pageHeightPx = (pageHeight - 2 * margin) * (imgProps.height / imgHeight); // en pixels
+      // Ajoute la première page
+      pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - 2 * margin;
 
-        const imgCanvas = document.createElement("canvas");
-        const ctx = imgCanvas.getContext("2d");
-        const imgFullHeight = canvas.height;
-        const imgFullWidth = canvas.width;
-
-        while (remainingHeight > 0) {
-          imgCanvas.width = imgFullWidth;
-          imgCanvas.height = Math.min(pageHeightPx, remainingHeight);
-
-          ctx.clearRect(0, 0, imgFullWidth, imgCanvas.height);
-          ctx.drawImage(
-            canvas,
-            0, position,
-            imgFullWidth, imgCanvas.height,
-            0, 0,
-            imgFullWidth, imgCanvas.height
-          );
-
-          const imgPageData = imgCanvas.toDataURL("image/png");
-          pdf.addImage(imgPageData, "PNG", margin, margin, imgWidth, (imgCanvas.height * imgWidth) / imgFullWidth);
-
-          remainingHeight -= imgCanvas.height;
-          position += imgCanvas.height;
-
-          if (remainingHeight > 0) pdf.addPage();
-        }
+      // Si image dépasse une page, ajoute pages suivantes
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - 2 * margin;
       }
 
       pdf.save("resultats-ux.pdf");
     });
   }, 300);
 });
+
 
     </script>
 </body>
